@@ -106,6 +106,30 @@ router.post('/login',  async (req, res) => {
     res.status(400).send('user or password is wrong!');
   }
   
-})
+});
+
+router.delete('/:id', (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(400).send('Invalid User Id');
+  }
+  User.findByIdAndRemove(req.params.id).then((user) => {
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'user not found!' })
+    }
+    return res.status(200).json({ success: true, message: 'the user is deleted!' })
+  }).catch((err) => {
+    return res.status(500).json({ success: false, error: err })
+  })
+});
+
+router.get('/get/count', async (req, res) =>{
+  const userCount = await User.countDocuments((count) => count);
+  if(!userCount) {
+      res.status(500).json({ success: false });
+  } 
+  res.send({
+    userCount
+  });
+});
 
 module.exports = router;
