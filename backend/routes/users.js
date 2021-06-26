@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
@@ -80,5 +81,30 @@ router.put('/:id', async (req, res) => {
   }
   res.send(user);
 });
+
+router.post('/login',  async (req, res) => {
+  const user = await User.findOne({email: req.body.email}).select();
+  const sercret = process.env.SECRET_KEY;
+
+  if(!user) {
+    return res.status(400).send('the user not found!');
+  }
+
+  if(user && bcrypt.compareSync(req.body.password, user.passwordHash)) {
+    const token = jwt.sign(
+      {
+      userId: user.id,
+      },
+      sercret,
+      {
+        expiresIn: '1d'
+      }
+    );
+    res.status(200).send({user: user.email, token});
+  } else {
+    res.status(400).send('user or password is wrong!');
+  }
+  
+})
 
 module.exports = router;
