@@ -1,7 +1,9 @@
+const express = require('express');
+const mongoose = require('mongoose')
+const router = express.Router();
+
 const {Product} = require('../models/product');
 const {Category} = require('../models/category');
-const express = require('express');
-const router = express.Router();
 
 router.get('/', async (req, res) =>{
   const productList = await Product.find().populate('category');
@@ -12,6 +14,9 @@ router.get('/', async (req, res) =>{
 });
 
 router.get('/:id', async (req, res) =>{
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(400).send('Invalid Product Id');
+  }
   const product = await Product.findById(req.params.id).populate('category');
   if(!product) {
       res.status(404).json({ message: 'the product with the given ID was not found!' })
@@ -48,11 +53,17 @@ router.post('/', async (req, res) =>{
 });
 
 router.put('/:id', async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(400).send('Invalid Product Id');
+  }
+  if (!mongoose.isValidObjectId(req.body.category)) {
+    res.status(400).send('Invalid Category Id');
+  }
   const category = await Category.findById(req.body.category);
   if (!category) {
-    return res.status(400).send('Invalid category');
+    return res.status(400).send('Invalid Category');
   }
-  
+
   const product = await Product.findByIdAndUpdate(
     req.params.id, 
     {
@@ -71,9 +82,23 @@ router.put('/:id', async (req, res) => {
     {new: true}
   );
   if (!product) {
-    return res.status(400).send('the product cannot be updated!');
+    return res.status(400).send('the product not found!');
   }
   res.send(product);
+});
+
+router.delete('/:id', (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(400).send('Invalid Product Id');
+  }
+  Product.findByIdAndRemove(req.params.id).then((product) => {
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'product not found!' })
+    }
+    return res.status(200).json({ success: true, message: 'the product is deleted!' })
+  }).catch((err) => {
+    return res.status(500).json({ success: false, error: err })
+  })
 });
 
 module.exports = router;
