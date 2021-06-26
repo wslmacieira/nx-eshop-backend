@@ -6,6 +6,7 @@ const cors = require('cors');
 require('dotenv/config');
 const api = process.env.API_URL;
 const authJwt = require('./helpers/jwt');
+const errorHandler = require('./helpers/error-handler')
 
 app.use(cors());
 app.options('*', cors())
@@ -13,7 +14,7 @@ app.options('*', cors())
 app.use(express.json());
 app.use(morgan('tiny'));
 app.use(authJwt());
-
+app.use(errorHandler);
 //Routes
 const categoriesRoutes = require('./routes/categories');
 const productsRoutes = require('./routes/products');
