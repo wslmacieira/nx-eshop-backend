@@ -4,11 +4,19 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) =>{
-  const productList = await Product.find();
+  const productList = await Product.find().select('name image -_id');
   if(!productList) {
       res.status(500).json({success: false})
   } 
   res.send(productList);
+});
+
+router.get('/:id', async (req, res) =>{
+  const product = await Product.findById(req.params.id);
+  if(!product) {
+      res.status(404).json({ message: 'the product with the given ID was not found!' })
+  } 
+  res.send(product);
 })
 
 router.post('/', async (req, res) =>{
