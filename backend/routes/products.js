@@ -59,6 +59,10 @@ router.post('/', uploadOptions.single('image'), async (req, res) =>{
   if (!category) {
     return res.status(400).send('Invalid category');
   }
+  const file = req.file;
+  if (!file) {
+    return res.status(400).send('No image in the request');
+  }
   const fileName = req.file.filename
   const basePath = `${req.protocol}//${req.get('host')}/public/upload/`;
 
@@ -153,5 +157,37 @@ router.get('/get/featured/:count?', async (req, res) =>{
   } 
   res.send(products);
 });
+
+router.put(
+  '/gallery-images/:id', 
+  uploadOptions.array('images', 10), 
+  async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      res.status(400).send('Invalid Product Id');
+    }
+    const files = req.files;
+    let imagesPath = [];
+    const basePath = `${req.protocol}//${req.get('host')}/public/upload/`;
+
+    if(files) {
+      files.map((file) => {
+        imagesPath.push(`${basePath}${file.filename}`)
+      })
+      console.log(files)
+    }
+
+    const product = await Product.findByIdAndUpdate(
+      req.params.id, 
+      {
+        images: imagesPath,
+      },
+      {new: true}
+    )
+
+    if (!product) {
+      return res.status(400).send('the product not found!');
+    }
+    res.send(product);
+  });
 
 module.exports = router;
