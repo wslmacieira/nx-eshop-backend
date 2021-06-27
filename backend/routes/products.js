@@ -6,13 +6,26 @@ const multer = require('multer');
 const {Product} = require('../models/product');
 const {Category} = require('../models/category');
 
+const FILE_TYPE_MAP = {
+  'image/png': 'png',
+  'image/jpeg': 'jpeg',
+  'image/jpg': 'png'
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '/public/upload')
+    const isvalid = FILE_TYPE_MAP[file.mimetype];
+    let uploadError = new Error('invalid image type')
+
+    if(isvalid) {
+      uploadError = null
+    }
+    cb(uploadError, 'public/upload')
   },
   filename: function (req, file, cb) {
     const fileName = file.originalname.split(' ').join('-')
-    cb(null, fileName + '-' + Date.now())
+    const extension = FILE_TYPE_MAP[file.mimetype];
+    cb(null, `${fileName}-${Date.now()}.${extension}`)
   }
 });
 
