@@ -77,10 +77,13 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
-  Order.findByIdAndRemove(req.params.id).then((order) => {
+  Order.findByIdAndRemove(req.params.id).then(async(order) => {
     if (!order) {
       return res.status(404).json({ success: false, message: 'order not found!' })
     }
+    await order.orderItems.map(async(orderItem) => {
+      await OrderItem.findByIdAndRemove(orderItem);
+    })
     return res.status(200).json({ success: true, message: 'the order is deleted!' })
   }).catch((err) => {
     return res.status(500).json({ success: false, error: err })
